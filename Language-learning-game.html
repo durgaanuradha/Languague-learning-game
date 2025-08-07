@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Multi-language Learning Game</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 30px;
+      text-align: center;
+    }
+    #game {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    select, button {
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      width: 90%;
+      max-width: 300px;
+    }
+    .question {
+      font-size: 22px;
+      margin: 25px 0 15px;
+    }
+    .choices button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 15px;
+      font-size: 18px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 80%;
+      max-width: 400px;
+    }
+    .choices button:hover {
+      background: #2980b9;
+    }
+    #score {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    #restart {
+      display: none;
+      margin-top: 20px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌍 Language Learning Game</h1>
+
+  <div id="game">
+    <select id="languageSelect" onchange="startGame()">
+      <option value="hindi">Hindi 🇮🇳</option>
+      <option value="kannada">Kannada 🇮🇳</option>
+      <option value="tamil">Tamil 🇮🇳</option>
+      <option value="malayalam">Malayalam 🇮🇳</option>
+      <option value="telugu">Telugu 🇮🇳</option>
+      <option value="spanish">Spanish 🇪🇸</option>
+      <option value="french">French 🇫🇷</option>
+      <option value="german">German 🇩🇪</option>
+      <option value="japanese">Japanese 🇯🇵</option>
+      <option value="arabic">Arabic 🇸🇦</option>
+    </select>
+
+    <div class="question" id="question">Loading...</div>
+    <div class="choices" id="choices"></div>
+    <div id="score">Score: 0</div>
+    <button id="restart" onclick="startGame()">Play Again</button>
+  </div>
+
+  <script>
+    const vocabulary = {
+      hindi: [
+        ["Apple", "सेब"], ["Dog", "कुत्ता"], ["Water", "पानी"], ["Book", "किताब"], ["House", "घर"]
+      ],
+      kannada: [
+        ["Apple", "ಸೇಬು"], ["Dog", "ನಾಯಿ"], ["Water", "ನೀರು"], ["Book", "ಪುಸ್ತಕ"], ["House", "ಮನೆ"]
+      ],
+      tamil: [
+        ["Apple", "ஆப்பிள்"], ["Dog", "நாய்"], ["Water", "தண்ணீர்"], ["Book", "புத்தகம்"], ["House", "வீடு"]
+      ],
+      malayalam: [
+        ["Apple", "ആപ്പിൾ"], ["Dog", "നായ"], ["Water", "വെള്ളം"], ["Book", "പുസ്തകം"], ["House", "വീട്"]
+      ],
+      telugu: [
+        ["Apple", "ఆపిల్"], ["Dog", "కుక్క"], ["Water", "నీరు"], ["Book", "పుస్తకం"], ["House", "ఇల్లు"]
+      ],
+      spanish: [
+        ["Apple", "Manzana"], ["Dog", "Perro"], ["Water", "Agua"], ["Book", "Libro"], ["House", "Casa"]
+      ],
+      french: [
+        ["Apple", "Pomme"], ["Dog", "Chien"], ["Water", "Eau"], ["Book", "Livre"], ["House", "Maison"]
+      ],
+      german: [
+        ["Apple", "Apfel"], ["Dog", "Hund"], ["Water", "Wasser"], ["Book", "Buch"], ["House", "Haus"]
+      ],
+      japanese: [
+        ["Apple", "りんご"], ["Dog", "犬"], ["Water", "水"], ["Book", "本"], ["House", "家"]
+      ],
+      arabic: [
+        ["Apple", "تفاحة"], ["Dog", "كلب"], ["Water", "ماء"], ["Book", "كتاب"], ["House", "منزل"]
+      ]
+    };
+
+    let currentLang = "hindi";
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    function startGame() {
+      currentLang = document.getElementById('languageSelect').value;
+      questions = [...vocabulary[currentLang]].sort(() => 0.5 - Math.random());
+      currentIndex = 0;
+      score = 0;
+      document.getElementById('score').textContent = "Score: 0";
+      document.getElementById('restart').style.display = "none";
+      showQuestion();
+    }
+
+    function showQuestion() {
+      if (currentIndex >= questions.length) {
+        document.getElementById('question').textContent = "✅ Game Over!";
+        document.getElementById('choices').innerHTML = "";
+        document.getElementById('score').textContent = `Final Score: ${score}/${questions.length}`;
+        document.getElementById('restart').style.display = "inline-block";
+        return;
+      }
+
+      const q = questions[currentIndex];
+      const english = q[0];
+      const correct = q[1];
+
+      document.getElementById('question').textContent = `What is "${english}" in ${capitalize(currentLang)}?`;
+
+      const allAnswers = vocabulary[currentLang].map(pair => pair[1]);
+      let options = [correct];
+      while (options.length < 4) {
+        const rand = allAnswers[Math.floor(Math.random() * allAnswers.length)];
+        if (!options.includes(rand)) options.push(rand);
+      }
+
+      options.sort(() => 0.5 - Math.random());
+
+      const choicesDiv = document.getElementById('choices');
+      choicesDiv.innerHTML = "";
+      options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(option, correct);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct) {
+      if (selected === correct) {
+        alert("✅ Correct!");
+        score++;
+      } else {
+        alert(`❌ Incorrect! Correct answer: ${correct}`);
+      }
+      currentIndex++;
+      document.getElementById('score').textContent = `Score: ${score}`;
+      showQuestion();
+    }
+
+    function capitalize(lang) {
+      return lang.charAt(0).toUpperCase() + lang.slice(1);
+    }
+
+    // Start on load
+    startGame();
+  </script>
+
+</body>
+</html>
